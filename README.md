@@ -72,11 +72,11 @@ Dashboard Visualization
 
 ### Clone Repository
 
-git clone https://github.com/yourusername/email-intelligence-system.git
+git clone https://github.com/Abhi01shinde/Email-Intelligence-System.git
 
 ### Navigate to Project
 
-cd email-intelligence-system
+cd Email-Intelligence-System
 
 ### Install Dependencies
 
@@ -95,15 +95,6 @@ uvicorn main:app --reload
 * User Preference Learning
 * Mobile Application
 * Multi-Email Provider Support
-
----
-
-## Team Members
-
-* Abhishek Shinde
-* Aadesh Angre
-* Yash Salgaonkar
-* Darshan Salunkhe
 
 ---
 
