@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 # 🧠 Email Intelligence System
 
 > Autonomous AI-powered Gmail management with cognitive load protection, voice summaries, and sender intelligence profiling.
-
----
 
 ## ✨ Features
 
@@ -19,8 +16,6 @@
 | 💬 Ask Your Inbox | Natural language Q&A about your emails |
 | 📋 Decision Logs | Full explainability for every AI decision |
 | ⏰ Accountability Check | Flags overdue commitments and missed deadlines |
-
----
 
 ## 🚀 Quick Start (VS Code)
 
@@ -91,8 +86,6 @@ Go to: **http://localhost:8000**
 3. Wait for AI to classify each email
 4. Explore the dashboard!
 
----
-
 ## 📁 Project Structure
 
 ```
@@ -112,8 +105,6 @@ email_intelligence/
     ├── email_intelligence.db   # SQLite database (auto-created)
     └── token.json              # Gmail auth token (auto-created)
 ```
-
----
 
 ## 🔧 API Endpoints
 
@@ -138,8 +129,6 @@ email_intelligence/
 
 Full API docs: http://localhost:8000/docs
 
----
-
 ## ⚠️ Troubleshooting
 
 **"redirect_uri_mismatch" error:**
@@ -157,8 +146,6 @@ Full API docs: http://localhost:8000/docs
 **AI analysis slow:**
 → Normal — GPT-4o-mini takes 1-3 seconds per email. Processing 10 emails takes ~30 seconds.
 
----
-
 ## 💡 Usage Tips
 
 1. **First run**: Process 5-10 emails to populate the dashboard
@@ -167,16 +154,12 @@ Full API docs: http://localhost:8000/docs
 4. **Accountability Check**: Run it daily to catch missed commitments
 5. **Cognitive Load**: When it hits "Critical", the system automatically defers low-priority emails
 
----
-
 ## 🔒 Privacy
 
 - All email data is stored **locally** in SQLite (`data/email_intelligence.db`)
 - Only email text is sent to OpenAI for classification
 - Gmail credentials never leave your machine
 - No third-party tracking or analytics
-
----
 
 *Built with FastAPI + SQLite + OpenAI GPT-4o-mini + React*
 =======
@@ -188,7 +171,6 @@ Email Intelligence System is an AI-powered email management platform designed to
 
 The system integrates Artificial Intelligence with Gmail API to transform traditional email management into a smart productivity solution.
 
----
 
 ## Features
 
@@ -201,8 +183,6 @@ The system integrates Artificial Intelligence with Gmail API to transform tradit
 * Interactive Dashboard
 * Decision Logs
 * Sender Profile Analysis
-
----
 
 ## System Architecture
 
@@ -217,8 +197,6 @@ Task & Commitment Extraction
 Email Summarization
 ↓
 Dashboard Visualization
-
----
 
 ## Technology Stack
 
@@ -248,8 +226,6 @@ Dashboard Visualization
 * Task Extraction
 * Summarization
 
----
-
 ## Installation
 
 ### Clone Repository
@@ -268,8 +244,6 @@ pip install -r requirements.txt
 
 uvicorn main:app --reload
 
----
-
 ## Future Enhancements
 
 * Smart Reply Generation
@@ -278,9 +252,7 @@ uvicorn main:app --reload
 * Mobile Application
 * Multi-Email Provider Support
 
----
-
 ## License
 
 This project is developed for educational and research purposes.
->>>>>>> c7628de750ebeca7fec78602c730c115fc963e4f
+
