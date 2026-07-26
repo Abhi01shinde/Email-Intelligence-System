@@ -30,7 +30,7 @@
 4. Go to **APIs & Services → Credentials**
 5. Click **Create Credentials → OAuth 2.0 Client IDs**
 6. Application type: **Web application**
-7. Add Authorized redirect URI: `http://localhost:8000/auth/callback`
+7. Add Authorized redirect URI: `https://email-intelligence-system-wvvs.onrender.com/auth/callback`
 8. Download credentials — copy **Client ID** and **Client Secret**
 9. Paste them in `.env` file (already filled if you used the provided .env)
 
@@ -72,7 +72,7 @@ python main.py
 ```
 
 ### Step 4: Open Dashboard
-Go to: **http://localhost:8000**
+Go to: **https://email-intelligence-system-wvvs.onrender.com**
 
 ### Step 5: Connect Gmail
 1. Click "Connect Gmail Account" on the login screen
@@ -132,7 +132,7 @@ Full API docs: http://localhost:8000/docs
 ## ⚠️ Troubleshooting
 
 **"redirect_uri_mismatch" error:**
-→ In Google Cloud Console, make sure your redirect URI is exactly: `http://localhost:8000/auth/callback`
+→ In Google Cloud Console, make sure your redirect URI is exactly: `https://email-intelligence-system-wvvs.onrender.com/auth/callback`
 
 **"Access blocked: This app's request is invalid":**
 → Go to OAuth Consent Screen → Add your email as a Test User

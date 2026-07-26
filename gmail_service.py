@@ -82,13 +82,13 @@ def get_flow():
             "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
             "auth_uri": "https://accounts.google.com/o/oauth2/v2/auth",
             "token_uri": "https://oauth2.googleapis.com/token",
-            "redirect_uris": [os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/callback")]
+            "redirect_uris": [os.getenv("GOOGLE_REDIRECT_URI", "https://email-intelligence-system-wvvs.onrender.com/auth/callback")]
         }
     }
     flow = Flow.from_client_config(
         client_config,
         scopes=SCOPES,
-        redirect_uri=os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/callback")
+        redirect_uri=os.getenv("GOOGLE_REDIRECT_URI", "https://email-intelligence-system-wvvs.onrender.com/auth/callback")
     )
     return flow
 

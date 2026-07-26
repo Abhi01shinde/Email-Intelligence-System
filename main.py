@@ -184,7 +184,7 @@ if FRONTEND_DIR.exists():
 def startup():
     init_db()
     print("🚀 Email Intelligence System started")
-    print("📊 Dashboard: http://localhost:8000")
+    print("📊 Dashboard: https://email-intelligence-system-wvvs.onrender.com")
     _set_sync_status(
         running=False,
         stage="idle",

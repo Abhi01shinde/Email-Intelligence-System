@@ -24,7 +24,7 @@ if not exist "data" mkdir data
 :: Start server
 echo [4/4] Starting server...
 echo.
-echo ✅ Dashboard: http://localhost:8000
+echo ✅ Dashboard: https://email-intelligence-system-wvvs.onrender.com
 echo ✅ API Docs:   http://localhost:8000/docs
 echo.
 echo Press Ctrl+C to stop the server
