@@ -109,6 +109,12 @@ def _clear_account_state():
 
 def _get_current_account_email() -> Optional[str]:
     state = _load_account_state()
+
+    print("\n========== ACCOUNT STATE ==========")
+    print("Loaded State :", state)
+    print("Account File :", ACCOUNT_STATE_FILE)
+    print("===================================\n")
+
     email = (state.get("email") or "").strip().lower()
     return email or None
 
@@ -304,6 +310,11 @@ async def auth_callback(code: str, state: Optional[str] = None):
             _save_account_state(
                 {"email": current_email}
             )
+
+            print("\n========== ACCOUNT SAVED ==========")
+            print("Saved Email :", current_email)
+            print("Account File:", ACCOUNT_STATE_FILE)
+            print("===================================\n")
 
         print("✅ OAuth Success")
         print("Logged in as:", current_email)
