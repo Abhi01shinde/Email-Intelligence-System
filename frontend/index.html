@@ -1,0 +1,2326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email Intelligence System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    :root {
+      --bg: #06090f;
+      --bg2: #0c1220;
+      --bg3: #111827;
+      --card: #0f1928;
+      --card2: #141f32;
+      --border: #1e2d45;
+      --border2: #253752;
+      --cyan: #00d4ff;
+      --cyan2: #00a8cc;
+      --purple: #7c3aed;
+      --purple2: #5b21b6;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --orange: #f97316;
+      --text: #e2e8f0;
+      --text2: #94a3b8;
+      --text3: #64748b;
+      --glow: 0 0 20px rgba(0, 212, 255, 0.15);
+      --glow2: 0 0 40px rgba(0, 212, 255, 0.08);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      z-index: 100;
+      transition: width 0.3s;
+    }
+    .sidebar-logo {
+      padding: 20px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .logo-text { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.2; }
+    .logo-sub { font-size: 10px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+
+    .nav { padding: 12px 8px; flex: 1; overflow-y: auto; }
+    .nav-section { margin-bottom: 20px; }
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0 10px;
+      margin-bottom: 6px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text2);
+      transition: all 0.15s;
+      margin-bottom: 2px;
+      border: 1px solid transparent;
+    }
+    .nav-item:hover { background: var(--card); color: var(--text); }
+    .nav-item.active {
+      background: rgba(0,212,255,0.1);
+      color: var(--cyan);
+      border-color: rgba(0,212,255,0.2);
+    }
+    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--red);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+    .nav-badge.cyan { background: var(--cyan); color: #000; }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .auth-status {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px;
+      background: var(--card);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .account-card {
+      background: linear-gradient(180deg, rgba(0,212,255,0.08), rgba(0,212,255,0.03));
+      border: 1px solid rgba(0,212,255,0.18);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+    .account-label {
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .account-email {
+      font-size: 12px;
+      color: var(--text);
+      font-weight: 600;
+      word-break: break-word;
+      line-height: 1.4;
+    }
+    .account-hint {
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .status-dot.connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .status-dot.disconnected { background: var(--red); }
+
+    /* Main content */
+    .main {
+      margin-left: 240px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar {
+      height: 56px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .topbar-title { font-size: 15px; font-weight: 600; flex: 1; }
+    .topbar-sub { font-size: 12px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+    .account-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,212,255,0.2);
+      background: rgba(0,212,255,0.08);
+      color: var(--cyan);
+      font-size: 11px;
+      font-weight: 600;
+      max-width: 320px;
+    }
+    .account-badge-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      font-family: 'Space Grotesk', sans-serif;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: var(--cyan); color: #000; }
+    .btn-primary:hover { background: var(--cyan2); }
+    .btn-secondary { background: var(--card2); color: var(--text); border: 1px solid var(--border2); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-danger { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .btn-success { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+    .btn-ghost { background: transparent; color: var(--text2); }
+    .btn-ghost:hover { color: var(--text); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .content { padding: 24px; overflow-y: auto; flex: 1; }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card-glow { box-shadow: var(--glow); }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title-icon { font-size: 16px; }
+
+    /* Stats grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .stat-card:hover { border-color: var(--border2); }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+    .stat-card.urgent::before { background: linear-gradient(90deg, var(--red), transparent); }
+    .stat-card.task::before { background: linear-gradient(90deg, var(--yellow), transparent); }
+    .stat-card.info::before { background: linear-gradient(90deg, var(--cyan), transparent); }
+    .stat-card.load::before { background: linear-gradient(90deg, var(--purple), transparent); }
+    .stat-label { font-size: 11px; color: var(--text3); margin-bottom: 8px; font-weight: 500; }
+    .stat-value { font-size: 28px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .stat-value.urgent { color: var(--red); }
+    .stat-value.task { color: var(--yellow); }
+    .stat-value.info { color: var(--cyan); }
+    .stat-value.load { color: var(--purple); }
+    .stat-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+    /* Classification badges */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-urgent { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .badge-task { background: rgba(245,158,11,0.15); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+    .badge-informational { background: rgba(0,212,255,0.1); color: var(--cyan); border: 1px solid rgba(0,212,255,0.2); }
+    .badge-spam { background: rgba(100,116,139,0.2); color: var(--text3); border: 1px solid var(--border); }
+    .badge-pending { background: rgba(245,158,11,0.15); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+    .badge-completed { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+    .badge-missed { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+
+    /* Email list */
+    .email-list { display: flex; flex-direction: column; gap: 8px; }
+    .email-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      position: relative;
+    }
+    .email-item:hover { border-color: var(--border2); background: var(--card2); }
+    .email-item.urgent-border { border-left: 3px solid var(--red); }
+    .email-item.task-border { border-left: 3px solid var(--yellow); }
+    .email-item.info-border { border-left: 3px solid var(--cyan); }
+    .email-avatar {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--purple), var(--cyan2));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+      color: white;
+    }
+    .email-meta { flex: 1; min-width: 0; }
+    .email-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .email-sender { font-size: 13px; font-weight: 600; }
+    .email-time { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-left: auto; }
+    .email-subject { font-size: 12px; color: var(--text2); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .email-snippet { font-size: 11px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .email-footer { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+    .priority-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .stress-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .stress-low { background: rgba(16,185,129,0.1); color: var(--green); }
+    .stress-mid { background: rgba(245,158,11,0.1); color: var(--yellow); }
+    .stress-high { background: rgba(239,68,68,0.1); color: var(--red); }
+
+    /* Email detail panel */
+    .detail-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      height: fit-content;
+    }
+    .detail-subject { font-size: 18px; font-weight: 700; margin-bottom: 12px; line-height: 1.3; }
+    .detail-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .detail-meta-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text2);
+    }
+    .detail-section { margin-bottom: 20px; }
+    .detail-section-title {
+      font-size: 11px; font-weight: 600; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .ai-summary-box {
+      background: rgba(0,212,255,0.05);
+      border: 1px solid rgba(0,212,255,0.15);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .reasoning-box {
+      background: rgba(124,58,237,0.05);
+      border: 1px solid rgba(124,58,237,0.2);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+    .commit-tag {
+      display: inline-flex; align-items: center;
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.2);
+      color: var(--yellow);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      margin: 2px;
+    }
+    .action-item-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(0,212,255,0.07);
+      border: 1px solid rgba(0,212,255,0.15);
+      color: var(--text);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      margin: 2px;
+    }
+    .reply-textarea {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: 'Space Grotesk', sans-serif;
+      resize: vertical;
+      min-height: 100px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .reply-textarea:focus { border-color: var(--cyan); }
+    .reply-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      align-items: center;
+    }
+    .reply-voice-status {
+      font-size: 11px;
+      color: var(--text3);
+      line-height: 1.5;
+    }
+    .reply-voice-status.active {
+      color: var(--cyan);
+    }
+    .reply-voice-status.error {
+      color: var(--red);
+    }
+
+    /* Voice button */
+    .voice-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(0,212,255,0.1));
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 10px;
+      cursor: pointer;
+      color: var(--text);
+      font-size: 13px;
+      font-family: 'Space Grotesk', sans-serif;
+      transition: all 0.2s;
+    }
+    .voice-btn:hover { border-color: var(--purple); box-shadow: 0 0 15px rgba(124,58,237,0.2); }
+    .voice-btn.playing { background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(0,212,255,0.2)); animation: pulse-border 1.5s infinite; }
+    @keyframes pulse-border {
+      0%, 100% { border-color: rgba(124,58,237,0.3); }
+      50% { border-color: var(--purple); box-shadow: 0 0 20px rgba(124,58,237,0.3); }
+    }
+    .voice-wave { display: flex; align-items: center; gap: 2px; }
+    .voice-wave span {
+      width: 2px; background: var(--purple);
+      border-radius: 1px;
+      animation: wave 0.8s infinite;
+    }
+    .voice-wave span:nth-child(1) { height: 8px; animation-delay: 0s; }
+    .voice-wave span:nth-child(2) { height: 14px; animation-delay: 0.1s; }
+    .voice-wave span:nth-child(3) { height: 10px; animation-delay: 0.2s; }
+    .voice-wave span:nth-child(4) { height: 16px; animation-delay: 0.3s; }
+    .voice-wave span:nth-child(5) { height: 8px; animation-delay: 0.4s; }
+    @keyframes wave {
+      0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+      50% { transform: scaleY(1); opacity: 1; }
+    }
+
+    /* Cognitive Load Gauge */
+    .load-gauge-container {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 10px;
+    }
+    .gauge-svg { overflow: visible; }
+    .load-level-text {
+      font-size: 22px; font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .load-score-text {
+      font-size: 13px; color: var(--text3);
+    }
+    .load-advice {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text2);
+      margin-top: 10px;
+      line-height: 1.5;
+      max-width: 200px;
+    }
+    .load-breakdown {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-top: 12px; width: 100%;
+    }
+    .breakdown-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+    .breakdown-value { font-size: 18px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .breakdown-label { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+    /* Sender profile card */
+    .profile-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .profile-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .profile-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), var(--cyan));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .reliability-bar { height: 4px; border-radius: 2px; background: var(--border); margin-top: 6px; overflow: hidden; }
+    .reliability-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--cyan), var(--green)); transition: width 0.5s; }
+
+    /* AI Chat */
+    .chat-container {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .chat-messages { padding: 16px; max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .chat-msg {
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 85%;
+    }
+    .chat-msg.user { background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2); align-self: flex-end; color: var(--text); }
+    .chat-msg.ai { background: var(--card2); border: 1px solid var(--border); align-self: flex-start; color: var(--text2); }
+    .chat-input-row {
+      display: flex; gap: 8px;
+      padding: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .chat-input {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: 'Space Grotesk', sans-serif;
+      outline: none;
+    }
+    .chat-input:focus { border-color: var(--cyan); }
+    .chat-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 12px 12px;
+    }
+    .chat-chip {
+      border: 1px solid rgba(0,212,255,0.18);
+      background: rgba(0,212,255,0.06);
+      color: var(--text2);
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .chat-chip:hover {
+      color: var(--text);
+      border-color: rgba(0,212,255,0.32);
+      background: rgba(0,212,255,0.12);
+    }
+
+    .volume-chart {
+      position: relative;
+      height: 180px;
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      padding: 10px 4px 0;
+      overflow: hidden;
+    }
+    .volume-trend {
+      position: absolute;
+      inset: 10px 4px 24px;
+      width: calc(100% - 8px);
+      height: calc(100% - 34px);
+      pointer-events: none;
+      overflow: visible;
+    }
+    .volume-trend-line {
+      fill: none;
+      stroke: rgba(255, 184, 0, 0.95);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 0 10px rgba(255, 184, 0, 0.24));
+    }
+    .volume-trend-dot {
+      fill: #ffb800;
+      stroke: rgba(8, 15, 29, 0.95);
+      stroke-width: 2;
+    }
+    .volume-tooltip {
+      position: absolute;
+      min-width: 96px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(9, 16, 30, 0.96);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35);
+      pointer-events: none;
+      z-index: 2;
+      transform: translate(-50%, -110%);
+      backdrop-filter: blur(10px);
+    }
+    .volume-tooltip-day {
+      font-size: 11px;
+      color: var(--text3);
+      margin-bottom: 3px;
+    }
+    .volume-tooltip-count {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .volume-bar-col {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      height: 100%;
+    }
+    .volume-bar-wrap {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      background: linear-gradient(180deg, rgba(0,212,255,0.03), rgba(0,212,255,0.01));
+      border: 1px solid rgba(30,45,69,0.6);
+      border-radius: 10px;
+      padding: 8px;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    }
+    .volume-bar {
+      width: 100%;
+      max-width: 46px;
+      border-radius: 8px 8px 4px 4px;
+      background: linear-gradient(180deg, rgba(88,243,195,0.95), rgba(0,212,255,0.85));
+      box-shadow: 0 10px 24px rgba(0,212,255,0.16);
+      min-height: 8px;
+      transition: height 0.35s ease, opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .volume-bar-col.active .volume-bar-wrap {
+      border-color: rgba(0,212,255,0.34);
+      background: linear-gradient(180deg, rgba(0,212,255,0.08), rgba(0,212,255,0.02));
+      transform: translateY(-2px);
+    }
+    .volume-bar-col.active .volume-bar {
+      transform: scaleY(1.02);
+      box-shadow: 0 16px 30px rgba(0,212,255,0.24);
+    }
+    .volume-value {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--cyan);
+    }
+    .volume-label {
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    /* Decision logs */
+    .log-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 8px;
+    }
+    .log-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .log-decision {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(0,212,255,0.1);
+      color: var(--cyan);
+      border: 1px solid rgba(0,212,255,0.2);
+    }
+    .log-decision.suppressed { background: rgba(239,68,68,0.1); color: var(--red); border-color: rgba(239,68,68,0.2); }
+    .log-reason { font-size: 12px; color: var(--text2); line-height: 1.5; }
+    .log-meta { font-size: 11px; color: var(--text3); margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+
+    /* Commit timeline */
+    .commit-item {
+      display: flex; gap: 12px;
+      padding: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      align-items: flex-start;
+    }
+    .commit-dot-col { display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
+    .commit-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .commit-line { width: 1px; flex: 1; background: var(--border); margin-top: 4px; }
+    .commit-content { flex: 1; }
+    .commit-text { font-size: 13px; color: var(--text); margin-bottom: 6px; line-height: 1.4; }
+    .commit-from { font-size: 11px; color: var(--text3); }
+
+    /* Loading */
+    .loading-spinner {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--cyan);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-overlay {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 60px;
+      gap: 16px;
+      color: var(--text2);
+      font-size: 14px;
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      z-index: 9999;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .toast {
+      padding: 12px 16px;
+      background: var(--card2);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      font-size: 13px;
+      animation: slide-in 0.3s ease;
+      max-width: 320px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .toast.success { border-color: rgba(16,185,129,0.4); }
+    .toast.error { border-color: rgba(239,68,68,0.4); }
+    @keyframes slide-in { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* Two-column layout */
+    .two-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 420px); gap: 20px; align-items: start; }
+    .two-col > div { min-width: 0; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+    /* Selector tabs */
+    .tab-bar {
+      display: flex; gap: 4px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 7px 16px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text2);
+      transition: all 0.15s;
+    }
+    .tab.active { background: var(--card2); color: var(--text); border: 1px solid var(--border2); }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text3);
+    }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+    .empty-state h3 { font-size: 16px; color: var(--text2); margin-bottom: 6px; }
+    .empty-state p { font-size: 13px; }
+
+    /* Auth screen */
+    .auth-screen {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg);
+      position: relative;
+    }
+    .auth-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px;
+      width: 420px;
+      text-align: center;
+    }
+    .auth-logo {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 20px;
+    }
+    .auth-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .auth-sub { font-size: 14px; color: var(--text2); margin-bottom: 32px; line-height: 1.6; }
+    .feature-list { text-align: left; margin-bottom: 32px; display: flex; flex-direction: column; gap: 10px; }
+    .feature-item {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; color: var(--text2);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    .feature-item .fi { font-size: 18px; }
+
+    /* Scrollable areas */
+    .scroll-area { overflow-y: auto; max-height: 500px; }
+
+    /* Stress meter */
+    .stress-bar-container { margin-top: 6px; }
+    .stress-bar { height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; }
+    .stress-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+
+    @media (max-width: 1200px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .two-col { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { width: 56px; }
+      .logo-text, .logo-sub, .nav-item span:not(.icon), .nav-badge, .auth-status > span:not(.status-dot) { display: none; }
+      .main { margin-left: 56px; }
+    }
+  </style>
+</head>
+<body>
+<div id="root">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-family:'Space Grotesk',sans-serif;">
+    Loading Email Intelligence...
+  </div>
+</div>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+function EmailVolumeChart({ data = [] }) {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+  const safeData = data.length > 0 ? data : Array.from({ length: 7 }, (_, i) => ({ date: `Day ${i + 1}`, count: 0 }));
+  const maxCount = Math.max(...safeData.map(d => d.count || 0), 1);
+  const chartHeight = 146;
+  const chartTopOffset = 10;
+  const trendPoints = safeData.map((item, index) => {
+    const count = item.count || 0;
+    const x = safeData.length === 1 ? 50 : (index / (safeData.length - 1)) * 100;
+    const y = 100 - ((count / maxCount) * 100);
+    return {
+      x,
+      y: Math.max(4, Math.min(96, y)),
+    };
+  });
+  const trendPath = trendPoints.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ');
+  const hoveredItem = hoveredIndex !== null ? safeData[hoveredIndex] : null;
+  const hoveredPoint = hoveredIndex !== null ? trendPoints[hoveredIndex] : null;
+
+  return (
+    <div className="volume-chart">
+      <svg className="volume-trend" viewBox={`0 0 100 100`} preserveAspectRatio="none" aria-hidden="true">
+        <path className="volume-trend-line" d={trendPath} />
+        {trendPoints.map((point, index) => (
+          <circle
+            key={`trend-${index}`}
+            className="volume-trend-dot"
+            cx={point.x}
+            cy={point.y}
+            r={hoveredIndex === index ? 2.6 : 2.1}
+            opacity={hoveredIndex === null || hoveredIndex === index ? 1 : 0.7}
+          />
+        ))}
+      </svg>
+      {hoveredItem && hoveredPoint && (
+        <div
+          className="volume-tooltip"
+          style={{
+            left: `${hoveredPoint.x}%`,
+            top: `${Math.max(28, chartTopOffset + (hoveredPoint.y / 100) * chartHeight)}px`
+          }}
+        >
+          <div className="volume-tooltip-day">{hoveredItem.date}</div>
+          <div className="volume-tooltip-count">{hoveredItem.count || 0} emails</div>
+        </div>
+      )}
+      {safeData.map((item, index) => {
+        const count = item.count || 0;
+        const height = Math.max(8, Math.round((count / maxCount) * 100));
+        return (
+          <div
+            key={`${item.date}-${count}`}
+            className={`volume-bar-col ${hoveredIndex === index ? 'active' : ''}`}
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex(null)}
+          >
+            <div className="volume-value">{count}</div>
+            <div className="volume-bar-wrap">
+              <div className="volume-bar" style={{ height: `${height}%`, opacity: count > 0 ? 1 : 0.35 }} />
+            </div>
+            <div className="volume-label">{item.date}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const API = 'http://localhost:8000';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+async function api(path, opts = {}) {
+  const response = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...opts
+  });
+
+  const raw = await response.text();
+  let parsed = null;
+  if (raw) {
+    try {
+      parsed = JSON.parse(raw);
+    } catch (_) {
+      parsed = raw;
+    }
+  }
+
+  if (!response.ok) {
+    const detail = (parsed && typeof parsed === 'object' && parsed.detail)
+      ? parsed.detail
+      : (typeof parsed === 'string' && parsed.trim() ? parsed.trim() : `HTTP ${response.status}`);
+    throw new Error(detail);
+  }
+
+  return parsed;
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return 'Unknown';
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return 'Unknown';
+  const diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+}
+
+function initials(name) {
+  if (!name) return '?';
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function stressColor(score) {
+  if (score < 30) return 'var(--green)';
+  if (score < 60) return 'var(--yellow)';
+  return 'var(--red)';
+}
+
+function classColor(cls) {
+  const map = { Urgent: '#ef4444', Task: '#f59e0b', Informational: '#00d4ff', Spam: '#64748b' };
+  return map[cls] || '#64748b';
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+
+function Toast({ toasts }) {
+  return (
+    <div className="toast-container">
+      {toasts.map(t => (
+        <div key={t.id} className={`toast ${t.type}`}>
+          <span>{t.type === 'success' ? '✅' : t.type === 'error' ? '❌' : 'ℹ️'}</span>
+          {t.msg}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Cognitive Load Gauge ─────────────────────────────────────────────────────
+
+function CognitiveGauge({ load }) {
+  if (!load) return null;
+  const pct = load.percentage || 0;
+  const r = 70;
+  const cx = 90, cy = 90;
+  const start = Math.PI * 0.75;
+  const end = Math.PI * 2.25;
+  const range = end - start;
+  const angle = start + (pct / 100) * range;
+  const x1 = cx + r * Math.cos(start), y1 = cy + r * Math.sin(start);
+  const x2 = cx + r * Math.cos(end), y2 = cy + r * Math.sin(end);
+  const px = cx + r * Math.cos(angle), py = cy + r * Math.sin(angle);
+  const arcPath = `M ${x1} ${y1} A ${r} ${r} 0 1 1 ${x2} ${y2}`;
+  const fillPath = pct > 0
+    ? `M ${x1} ${y1} A ${r} ${r} 0 ${pct > 66 ? 1 : 0} 1 ${px} ${py}`
+    : '';
+
+  const colorMap = { Low: '#10b981', Moderate: '#f59e0b', High: '#f97316', Critical: '#ef4444' };
+  const color = colorMap[load.level] || '#00d4ff';
+
+  return (
+    <div className="load-gauge-container">
+      <svg viewBox="0 0 180 110" width="180" height="110" className="gauge-svg">
+        <path d={arcPath} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" strokeLinecap="round" />
+        {fillPath && <path d={fillPath} fill="none" stroke={color} strokeWidth="10" strokeLinecap="round"
+          style={{ filter: `drop-shadow(0 0 6px ${color})` }} />}
+        <circle cx={px} cy={py} r="5" fill={color} style={{ filter: `drop-shadow(0 0 8px ${color})` }} />
+        <text x={cx} y={cy - 5} textAnchor="middle" fill={color} fontSize="26" fontWeight="700" fontFamily="JetBrains Mono">{pct}%</text>
+        <text x={cx} y={cy + 14} textAnchor="middle" fill={color} fontSize="12" fontWeight="600">{load.level}</text>
+        <text x={cx} y={cy + 28} textAnchor="middle" fill="#64748b" fontSize="10">Cognitive Load</text>
+      </svg>
+      {load.breakdown && (
+        <div className="load-breakdown">
+          <div className="breakdown-item">
+            <div className="breakdown-value" style={{ color: 'var(--cyan)' }}>{load.breakdown.active_tasks}</div>
+            <div className="breakdown-label">Active Tasks</div>
+          </div>
+          <div className="breakdown-item">
+            <div className="breakdown-value" style={{ color: 'var(--red)' }}>{load.breakdown.overdue_tasks}</div>
+            <div className="breakdown-label">Overdue</div>
+          </div>
+          <div className="breakdown-item">
+            <div className="breakdown-value" style={{ color: 'var(--yellow)' }}>{load.breakdown.pending_commitments}</div>
+            <div className="breakdown-label">Commitments</div>
+          </div>
+          <div className="breakdown-item">
+            <div className="breakdown-value" style={{ color: 'var(--red)' }}>{load.breakdown.unread_urgent}</div>
+            <div className="breakdown-label">Urgent Unread</div>
+          </div>
+        </div>
+      )}
+      <div className="load-advice">{load.advice}</div>
+    </div>
+  );
+}
+
+// ─── Voice Summary Button ─────────────────────────────────────────────────────
+
+function VoiceSummaryBtn({ emailId, emailSubject }) {
+  const [playing, setPlaying] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const utteranceRef = useRef(null);
+
+  const speak = async () => {
+    if (playing) {
+      window.speechSynthesis.cancel();
+      setPlaying(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await api(`/emails/${emailId}/voice-summary`);
+      const utterance = new SpeechSynthesisUtterance(data.voice_text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.onend = () => setPlaying(false);
+      utterance.onerror = () => setPlaying(false);
+      utteranceRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
+      setPlaying(true);
+    } catch(e) {
+      alert('Voice summary failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button className={`voice-btn ${playing ? 'playing' : ''}`} onClick={speak} disabled={loading}>
+      {loading ? <div className="loading-spinner" style={{ width: 16, height: 16 }} /> :
+        playing ? (
+          <>
+            <div className="voice-wave">
+              <span /><span /><span /><span /><span />
+            </div>
+            <span>Stop Voice</span>
+          </>
+        ) : (
+          <>
+            <span>🔊</span>
+            <span>Voice Summary</span>
+          </>
+        )
+      }
+    </button>
+  );
+}
+
+// ─── AI Chat ──────────────────────────────────────────────────────────────────
+
+function InboxChat({ suggestions = [] }) {
+  const [messages, setMessages] = useState([
+    { role: 'ai', text: 'Hi! I can answer questions about your inbox. Try: "Which emails need urgent attention?" or "Who sends me the most stressful emails?"' }
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const endRef = useRef(null);
+  const defaultSuggestions = [
+    'Which emails need urgent attention?',
+    'Do I have any deadlines?',
+    'Any commitments in my inbox?',
+    'Which unread emails do I have?',
+    'What should I reply to first?',
+    'Which mails can I ignore?'
+  ];
+  const shownSuggestions = suggestions.length > 0 ? suggestions : defaultSuggestions;
+
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  const sendQuestion = async (question) => {
+    if (!question.trim() || loading) return;
+    setMessages(m => [...m, { role: 'user', text: question }]);
+    setLoading(true);
+    try {
+      const data = await api(`/inbox/ask?question=${encodeURIComponent(question)}`);
+      setMessages(m => [...m, { role: 'ai', text: data.answer }]);
+    } catch(e) {
+      setMessages(m => [...m, { role: 'ai', text: 'Sorry, I could not process that question.' }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const send = async () => {
+    const question = input.trim();
+    if (!question || loading) return;
+    setInput('');
+    await sendQuestion(question);
+  };
+
+  return (
+    <div className="chat-container">
+      <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span>🤖</span>
+        <span style={{ fontSize: 13, fontWeight: 600 }}>Ask Your Inbox</span>
+        <span style={{ fontSize: 10, color: 'var(--text3)', marginLeft: 'auto', padding: '2px 6px', background: 'rgba(0,212,255,0.1)', borderRadius: 4, color: 'var(--cyan)' }}>AI</span>
+      </div>
+      <div className="chat-messages">
+        {messages.map((m, i) => (
+          <div key={i} className={`chat-msg ${m.role}`}>{m.text}</div>
+        ))}
+        {loading && <div className="chat-msg ai" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <div className="loading-spinner" style={{ width: 14, height: 14 }} /> Thinking...
+        </div>}
+        <div ref={endRef} />
+      </div>
+      <div className="chat-input-row">
+        <input
+          className="chat-input"
+          placeholder="Ask anything about your inbox..."
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && send()}
+        />
+        <button className="btn btn-primary" onClick={send} disabled={loading || !input.trim()}>↑</button>
+      </div>
+      <div className="chat-suggestions">
+        {shownSuggestions.map((q) => (
+          <button
+            key={q}
+            type="button"
+            className="chat-chip"
+            onClick={() => sendQuestion(q)}
+            disabled={loading}
+          >
+            {q}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Email Detail ─────────────────────────────────────────────────────────────
+
+function EmailDetail({ emailId, onClose }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [replying, setReplying] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [drafting, setDrafting] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [voiceError, setVoiceError] = useState('');
+  const [interimTranscript, setInterimTranscript] = useState('');
+  const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    setLoading(true);
+    api(`/emails/${emailId}`).then(d => { setData(d); setReplyText(d.email.ai_reply_draft || ''); }).finally(() => setLoading(false));
+  }, [emailId]);
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setVoiceSupported(false);
+      recognitionRef.current = null;
+      return undefined;
+    }
+
+    setVoiceSupported(true);
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = (data?.email?.language || 'en').toLowerCase() === 'hi' ? 'hi-IN' : 'en-US';
+
+    recognition.onstart = () => {
+      setListening(true);
+      setVoiceError('');
+      setInterimTranscript('');
+    };
+
+    recognition.onresult = (event) => {
+      let finalText = '';
+      let interimText = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0]?.transcript || '';
+        if (event.results[i].isFinal) {
+          finalText += transcript + ' ';
+        } else {
+          interimText += transcript;
+        }
+      }
+
+      if (finalText.trim()) {
+        setReplyText(prev => {
+          const spacer = prev.trim() ? (prev.endsWith(' ') || prev.endsWith('\n') ? '' : ' ') : '';
+          return `${prev}${spacer}${finalText.trim()}`;
+        });
+      }
+      setInterimTranscript(interimText.trim());
+    };
+
+    recognition.onerror = (event) => {
+      if (event.error === 'no-speech') {
+        setVoiceError('No speech detected. Try speaking a little closer to the microphone.');
+      } else if (event.error === 'not-allowed') {
+        setVoiceError('Microphone access was blocked. Please allow microphone permission in your browser.');
+      } else {
+        setVoiceError(`Voice input error: ${event.error}`);
+      }
+    };
+
+    recognition.onend = () => {
+      setListening(false);
+      setInterimTranscript('');
+    };
+
+    recognitionRef.current = recognition;
+    return () => {
+      try {
+        recognition.stop();
+      } catch (_) {}
+      recognitionRef.current = null;
+    };
+  }, [data?.email?.language]);
+
+  if (loading) return <div className="detail-panel"><div className="loading-overlay"><div className="loading-spinner" /><span>Loading email...</span></div></div>;
+  if (!data) return null;
+
+  const { email, sender_profile, commitments, decision_logs } = data;
+
+  const sendReply = async () => {
+    if (!replyText.trim()) return;
+    if (recognitionRef.current && listening) {
+      try {
+        recognitionRef.current.stop();
+      } catch (_) {}
+    }
+    setSending(true);
+    try {
+      await api(`/emails/${emailId}/reply?reply_body=${encodeURIComponent(replyText)}`, { method: 'POST' });
+      alert('Reply sent!');
+      setReplying(false);
+    } catch(e) { alert(e.message); }
+    finally { setSending(false); }
+  };
+
+  const generateDraft = async () => {
+    setDrafting(true);
+    try {
+      const result = await api(`/emails/${emailId}/draft-reply`, { method: 'POST' });
+      const draft = result.draft || '';
+      setReplyText(draft);
+      setData(d => d ? ({ ...d, email: { ...d.email, ai_reply_draft: draft } }) : d);
+      setReplying(true);
+    } catch(e) {
+      alert(e.message || 'Draft generation failed');
+    } finally {
+      setDrafting(false);
+    }
+  };
+
+  const toggleVoiceInput = () => {
+    if (!voiceSupported || !recognitionRef.current) {
+      setVoiceError('Voice typing is not supported in this browser.');
+      return;
+    }
+
+    setReplying(true);
+    setVoiceError('');
+    if (listening) {
+      try {
+        recognitionRef.current.stop();
+      } catch (_) {}
+      return;
+    }
+
+    try {
+      recognitionRef.current.start();
+    } catch (_) {
+      setVoiceError('Voice typing could not start. If it was already active, stop it and try again.');
+    }
+  };
+
+  const stressGradient = `linear-gradient(90deg, ${email.stress_score > 60 ? 'var(--red)' : email.stress_score > 30 ? 'var(--yellow)' : 'var(--green)'}, transparent)`;
+
+  return (
+    <div className="detail-panel">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+        <span className={`badge badge-${(email.classification || 'informational').toLowerCase()}`}>{email.classification}</span>
+        <button className="btn btn-ghost" onClick={onClose} style={{ fontSize: 18, padding: '4px 8px' }}>×</button>
+      </div>
+
+      <div className="detail-subject">{email.subject}</div>
+      <div className="detail-meta">
+        <div className="detail-meta-item">👤 <strong>{email.sender}</strong></div>
+        <div className="detail-meta-item">📅 {timeAgo(email.received_at || email.processed_at)}</div>
+        {email.deadline && <div className="detail-meta-item">⏰ <span style={{ color: 'var(--red)' }}>Due: {email.deadline.slice(0, 10)}</span></div>}
+        <div className="detail-meta-item">🌐 {email.language?.toUpperCase()}</div>
+      </div>
+
+      {/* Voice Summary */}
+      <div style={{ marginBottom: 16 }}>
+        <VoiceSummaryBtn emailId={emailId} emailSubject={email.subject} />
+      </div>
+
+      {/* Stress Score — UNIQUE FEATURE */}
+      <div className="detail-section">
+        <div className="detail-section-title">⚡ Pressure Score</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ flex: 1 }}>
+            <div className="stress-bar">
+              <div className="stress-fill" style={{ width: `${email.stress_score}%`, background: stressGradient }} />
+            </div>
+          </div>
+          <span style={{ fontFamily: 'JetBrains Mono', fontWeight: 700, color: stressColor(email.stress_score) }}>{email.stress_score}/100</span>
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>
+          {email.stress_score > 60 ? '⚠️ High pressure email — sender may be trying to stress you'
+            : email.stress_score > 30 ? '📊 Moderate pressure detected'
+            : '✅ Low pressure — relaxed tone'}
+        </div>
+      </div>
+
+      {/* AI Summary */}
+      {email.ai_summary && (
+        <div className="detail-section">
+          <div className="detail-section-title">🤖 AI Summary</div>
+          <div className="ai-summary-box">{email.ai_summary}</div>
+        </div>
+      )}
+
+      {/* Mood */}
+      {email.mood && (
+        <div className="detail-section">
+          <div className="detail-section-title">😊 Sender Mood: <span style={{ color: 'var(--cyan)', fontWeight: 700, textTransform: 'none' }}>{email.mood}</span></div>
+        </div>
+      )}
+
+      {/* Commitments */}
+      {commitments?.length > 0 && (
+        <div className="detail-section">
+          <div className="detail-section-title">🤝 Commitment Phrases</div>
+          <div>{commitments.map(c => <span key={c.id} className="commit-tag">"{c.commitment_text}"</span>)}</div>
+        </div>
+      )}
+
+      {/* Action Items */}
+      {email.action_items?.length > 0 && (
+        <div className="detail-section">
+          <div className="detail-section-title">✅ Action Items</div>
+          <div>{email.action_items.map((a, i) => <span key={i} className="action-item-tag">▶ {a}</span>)}</div>
+        </div>
+      )}
+
+      {/* AI Reasoning */}
+      {email.ai_reasoning && (
+        <div className="detail-section">
+          <div className="detail-section-title">🧠 AI Reasoning</div>
+          <div className="reasoning-box">{email.ai_reasoning}</div>
+        </div>
+      )}
+
+      {/* Sender Profile — UNIQUE FEATURE */}
+      {sender_profile && (
+        <div className="detail-section">
+          <div className="detail-section-title">🕵️ Sender Intelligence Profile</div>
+          <div className="profile-card">
+            <div className="profile-header">
+              <div className="profile-avatar">{initials(sender_profile.name)}</div>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{sender_profile.name}</div>
+                <div style={{ fontSize: 11, color: 'var(--text3)' }}>{sender_profile.email}</div>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+              <div>
+                <div style={{ fontSize: 10, color: 'var(--text3)' }}>Style</div>
+                <div style={{ fontSize: 12, fontWeight: 500 }}>{sender_profile.communication_style || 'Unknown'}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: 'var(--text3)' }}>Urgency</div>
+                <div style={{ fontSize: 12, fontWeight: 500 }}>{sender_profile.typical_urgency || 'Unknown'}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: 'var(--text3)' }}>Emails Tracked</div>
+                <div style={{ fontSize: 12, fontWeight: 500, fontFamily: 'JetBrains Mono' }}>{sender_profile.email_count}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: 'var(--text3)' }}>Avg Stress</div>
+                <div style={{ fontSize: 12, fontWeight: 500, color: stressColor(sender_profile.avg_stress_score), fontFamily: 'JetBrains Mono' }}>{Math.round(sender_profile.avg_stress_score)}/100</div>
+              </div>
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text3)', marginBottom: 4 }}>
+                <span>Reliability Score</span>
+                <span style={{ fontFamily: 'JetBrains Mono' }}>{Math.round(sender_profile.reliability_score)}%</span>
+              </div>
+              <div className="reliability-bar">
+                <div className="reliability-fill" style={{ width: `${sender_profile.reliability_score}%` }} />
+              </div>
+            </div>
+            {sender_profile.notes && <div style={{ fontSize: 11, color: 'var(--text2)', fontStyle: 'italic' }}>"{sender_profile.notes}"</div>}
+          </div>
+        </div>
+      )}
+
+      {/* Reply */}
+      {email.classification !== 'Spam' && (
+        <div className="detail-section">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <div className="detail-section-title" style={{ margin: 0 }}>💬 Draft Reply</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {!replying && <button className="btn btn-secondary" style={{ fontSize: 11 }} onClick={() => setReplying(true)} disabled={!replyText.trim()}>Edit & Send</button>}
+              <button className="btn btn-secondary" style={{ fontSize: 11 }} onClick={generateDraft} disabled={drafting}>
+                {drafting ? 'Generating...' : (replyText.trim() ? 'Regenerate Draft' : 'Generate Draft')}
+              </button>
+            </div>
+          </div>
+          {!replyText.trim() && !replying && (
+            <div className="reasoning-box" style={{ fontStyle: 'italic' }}>
+              No draft yet. Click generate draft to prepare a reply for this email.
+            </div>
+          )}
+          {replying ? (
+            <div>
+              <textarea className="reply-textarea" value={replyText} onChange={e => setReplyText(e.target.value)} rows={5} />
+              <div className="reply-tools">
+                {voiceSupported ? (
+                  <button className={`voice-btn ${listening ? 'playing' : ''}`} onClick={toggleVoiceInput} type="button">
+                    {listening ? (
+                      <>
+                        <div className="voice-wave">
+                          <span /><span /><span /><span /><span />
+                        </div>
+                        Stop Listening
+                      </>
+                    ) : (
+                      <>🎙️ Speak Reply</>
+                    )}
+                  </button>
+                ) : (
+                  <div className="reply-voice-status">Voice typing is not supported in this browser.</div>
+                )}
+                {(listening || interimTranscript || voiceError) && (
+                  <div className={`reply-voice-status ${voiceError ? 'error' : listening ? 'active' : ''}`}>
+                    {voiceError || (interimTranscript ? `Listening: ${interimTranscript}` : 'Listening... speak naturally and your reply will be typed here.')}
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                <button className="btn btn-primary" onClick={sendReply} disabled={sending}>
+                  {sending ? '⏳ Sending...' : '📨 Send Reply'}
+                </button>
+                <button className="btn btn-secondary" onClick={() => {
+                  if (recognitionRef.current && listening) {
+                    try {
+                      recognitionRef.current.stop();
+                    } catch (_) {}
+                  }
+                  setReplying(false);
+                  setInterimTranscript('');
+                  setVoiceError('');
+                }}>Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <div className="reasoning-box" style={{ fontStyle: 'italic' }}>
+              {replyText || email.ai_reply_draft || 'AI reply draft not available.'}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Decision logs */}
+      {decision_logs?.length > 0 && (
+        <div className="detail-section">
+          <div className="detail-section-title">📋 Decision Log</div>
+          {decision_logs.map(log => (
+            <div key={log.id} className="log-item" style={{ padding: 10, marginBottom: 6 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+                <span className={`log-decision ${log.was_suppressed ? 'suppressed' : ''}`}>{log.decision_taken}</span>
+                {log.was_suppressed && <span style={{ fontSize: 10, color: 'var(--red)' }}>⚠️ Suppressed</span>}
+                <span className="log-meta" style={{ marginTop: 0, marginLeft: 'auto' }}>{timeAgo(log.timestamp)}</span>
+              </div>
+              <div className="log-reason">{log.reason}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Pages ────────────────────────────────────────────────────────────────────
+
+function DashboardPage({ stats, loadData, syncStatus, onRefresh, onSync }) {
+  if (!stats) return <div className="loading-overlay"><div className="loading-spinner" /><span>Loading dashboard...</span></div>;
+
+  const moodData = Object.entries(stats.mood_distribution || {}).map(([name, value]) => ({ name, value }));
+  const MOOD_COLORS = ['#00d4ff', '#f59e0b', '#ef4444', '#10b981', '#7c3aed', '#f97316'];
+  const isSyncing = !!syncStatus?.running;
+  const chatSuggestions = [
+    stats.emails?.urgent > 0 ? 'Which emails need urgent attention?' : 'What should I reply to first?',
+    stats.commitments?.total > 0 ? 'Any commitments in my inbox?' : 'Do I have any deadlines?',
+    stats.emails?.unread > 0 ? 'Which unread emails do I have?' : 'Summarize my inbox',
+    (loadData?.breakdown?.pending_commitments || 0) > 0 ? 'What should I reply to first?' : 'Which mails can I ignore?',
+    'Who sends me the most stressful emails?'
+  ].filter((item, index, arr) => item && arr.indexOf(item) === index).slice(0, 6);
+
+  return (
+    <div>
+      {isSyncing && (
+        <div className="card" style={{ marginBottom: 16, padding: 14, borderColor: 'rgba(0,212,255,0.25)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 8 }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cyan)' }}>Syncing mailbox for the current Gmail account</div>
+              <div style={{ fontSize: 11, color: 'var(--text3)' }}>{syncStatus?.message || 'Refreshing inbox data...'}</div>
+            </div>
+            <div style={{ fontFamily: 'JetBrains Mono', color: 'var(--cyan)', fontWeight: 700 }}>{syncStatus?.progress_percent || 0}%</div>
+          </div>
+          <div style={{ height: 6, background: 'var(--border)', borderRadius: 999, overflow: 'hidden' }}>
+            <div style={{ width: `${syncStatus?.progress_percent || 0}%`, height: '100%', background: 'linear-gradient(90deg, var(--cyan), #58f3c3)', transition: 'width 0.3s ease' }} />
+          </div>
+        </div>
+      )}
+      {/* Stats */}
+      <div className="stats-grid">
+        <div className="stat-card urgent">
+          <div className="stat-label">🚨 Urgent Emails</div>
+          <div className="stat-value urgent">{stats.emails.urgent}</div>
+          <div className="stat-sub">{stats.emails.unread} unread total</div>
+        </div>
+        <div className="stat-card task">
+          <div className="stat-label">📋 Tasks Created</div>
+          <div className="stat-value task">{stats.tasks.pending}</div>
+          <div className="stat-sub">{stats.tasks.missed} missed</div>
+        </div>
+        <div className="stat-card info">
+          <div className="stat-label">📧 Emails Processed</div>
+          <div className="stat-value info">{stats.emails.total}</div>
+          <div className="stat-sub">{stats.emails.replied} replied</div>
+        </div>
+        <div className="stat-card load">
+          <div className="stat-label">⚡ Avg Stress Score</div>
+          <div className="stat-value load">{stats.avg_stress_score}</div>
+          <div className="stat-sub">Across all emails</div>
+        </div>
+      </div>
+
+      <div className="two-col">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Email Volume Chart */}
+          <div className="card">
+            <div className="card-title"><span className="card-title-icon">📈</span> Email Volume (7 Days)</div>
+            <EmailVolumeChart data={stats.daily_volume || []} />
+            <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+              <div style={{ fontSize: 11, color: 'var(--text3)' }}>
+                {syncStatus?.finished_at ? `Last sync: ${timeAgo(syncStatus.finished_at)}` : 'Sync to load your latest mailbox activity.'}
+              </div>
+              <button className="btn btn-secondary" style={{ fontSize: 11 }} onClick={() => onSync?.(40)} disabled={isSyncing}>
+                {isSyncing ? 'Syncing...' : 'Sync Latest Emails'}
+              </button>
+            </div>
+          </div>
+
+          {/* Recent Emails */}
+          <div className="card">
+            <div className="card-title"><span className="card-title-icon">📬</span> Recent Activity</div>
+            {stats.recent_emails?.length === 0
+              ? <div className="empty-state"><div className="empty-icon">📭</div><p>No emails processed yet.</p></div>
+              : (stats.recent_emails || []).map(e => (
+                <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
+                  <div className="email-avatar" style={{ width: 32, height: 32, fontSize: 12 }}>{initials(e.sender)}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600 }}>{e.sender}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.subject}</div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                    <span className={`badge badge-${(e.classification || 'informational').toLowerCase()}`}>{e.classification}</span>
+                    <span style={{ fontSize: 10, color: stressColor(e.stress_score), fontFamily: 'JetBrains Mono' }}>⚡{e.stress_score}</span>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+
+          {/* AI Chat */}
+          <InboxChat suggestions={chatSuggestions} />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Cognitive Load */}
+          <div className="card card-glow">
+            <div className="card-title"><span className="card-title-icon">🧠</span> Cognitive Load</div>
+            <CognitiveGauge load={loadData} />
+          </div>
+
+          {/* Mood Distribution */}
+          {moodData.length > 0 && (
+            <div className="card">
+              <div className="card-title"><span className="card-title-icon">😊</span> Email Mood Distribution</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {moodData.sort((a, b) => b.value - a.value).map((m, i) => (
+                  <div key={m.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontSize: 11, width: 90, color: 'var(--text2)' }}>{m.name}</div>
+                    <div style={{ flex: 1, height: 8, background: 'var(--border)', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{ width: `${(m.value / Math.max(...moodData.map(x => x.value))) * 100}%`, height: '100%', background: MOOD_COLORS[i % MOOD_COLORS.length], borderRadius: 4 }} />
+                    </div>
+                    <div style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: MOOD_COLORS[i % MOOD_COLORS.length], width: 20, textAlign: 'right' }}>{m.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Quick Stats */}
+          <div className="card">
+            <div className="card-title"><span className="card-title-icon">📊</span> Summary</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[
+                ['Total Emails', stats.emails.total, 'var(--text)'],
+                ['Commitments Tracked', stats.commitments.total, 'var(--yellow)'],
+                ['Missed Commitments', stats.commitments.missed, 'var(--red)'],
+                ['Tasks Completed', stats.tasks.completed, 'var(--green)'],
+                ['Spam Filtered', stats.emails.spam, 'var(--text3)'],
+              ].map(([label, val, color]) => (
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
+                  <span style={{ color: 'var(--text2)' }}>{label}</span>
+                  <span style={{ color, fontWeight: 600, fontFamily: 'JetBrains Mono' }}>{val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmailsPage({ addToast }) {
+  const [emails, setEmails] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [syncStatus, setSyncStatus] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [filter, setFilter] = useState('all');
+
+  const load = useCallback((showSpinner = false) => {
+    if (showSpinner || emails.length === 0) setLoading(true);
+    const url = filter === 'all' ? '/emails' : `/emails?classification=${filter}`;
+    api(url).then(setEmails).finally(() => setLoading(false));
+  }, [filter, emails.length]);
+
+  useEffect(() => { load(true); }, [filter]);
+
+  useEffect(() => {
+    let timer = null;
+    const poll = async () => {
+      try {
+        const s = await api('/emails/sync/status');
+        setSyncStatus(s);
+        timer = setTimeout(poll, s.running ? 2000 : 5000);
+        if (s.running) load(false);
+        if (!s.running && s.stage === 'completed') load(false);
+      } catch (_) {
+        timer = setTimeout(poll, 5000);
+      }
+    };
+    poll();
+    return () => { if (timer) clearTimeout(timer); };
+  }, [load]);
+
+  const triggerSync = async () => {
+    try {
+      await api('/emails/process?max_emails=40', { method: 'POST' });
+      addToast('success', 'Mailbox sync started. New emails will appear as processing completes.');
+    } catch (e) {
+      addToast('error', e.message);
+    }
+  };
+
+  const filtered = filter === 'all' ? emails : emails.filter(e => (e.classification || '').toLowerCase() === filter.toLowerCase());
+
+  return (
+    <div className="two-col">
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+          <div style={{ fontSize: 12, color: 'var(--text3)' }}>
+            {syncStatus?.finished_at ? `Last sync ${timeAgo(syncStatus.finished_at)}` : 'Sync the mailbox to pull the latest received emails.'}
+          </div>
+          <button className="btn btn-secondary" onClick={triggerSync} disabled={syncStatus?.running}>
+            {syncStatus?.running ? 'Syncing...' : 'Sync Latest Emails'}
+          </button>
+        </div>
+
+        <div className="tab-bar">
+          {['all', 'Urgent', 'Task', 'Informational', 'Spam'].map(t => (
+            <div key={t} className={`tab ${filter === t ? 'active' : ''}`} onClick={() => setFilter(t)}>{t === 'all' ? 'All' : t}</div>
+          ))}
+        </div>
+        {loading && emails.length === 0 ? <div className="loading-overlay"><div className="loading-spinner" /><span>Loading emails...</span></div>
+          : filtered.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">No Mail</div>
+              <h3>No emails yet</h3>
+              <p>Background sync loads and analyzes received emails from last 6 months automatically.</p>
+            </div>
+          ) : (
+            <div className="email-list">
+              {filtered.map(e => (
+                <div key={e.id}
+                  className={`email-item ${e.classification === 'Urgent' ? 'urgent-border' : e.classification === 'Task' ? 'task-border' : 'info-border'}`}
+                  style={{ background: selected === e.id ? 'var(--card2)' : '' }}
+                  onClick={() => setSelected(selected === e.id ? null : e.id)}
+                >
+                  <div className="email-avatar">{initials(e.sender)}</div>
+                  <div className="email-meta">
+                    <div className="email-header">
+                      <span className="email-sender">{e.sender}</span>
+                      <span className={`badge badge-${(e.classification || 'informational').toLowerCase()}`}>{e.classification}</span>
+                      <span className="email-time">{timeAgo(e.received_at || e.processed_at)}</span>
+                    </div>
+                    <div className="email-subject">{e.subject}</div>
+                    <div className="email-snippet">{e.body_snippet}</div>
+                    <div className="email-footer">
+                      <div className="priority-dot" style={{ background: classColor(e.classification) }} />
+                      <span style={{ fontSize: 10, color: 'var(--text3)', fontFamily: 'JetBrains Mono' }}>P{e.priority_score}</span>
+                      <span className={`stress-pill ${e.stress_score > 60 ? 'stress-high' : e.stress_score > 30 ? 'stress-mid' : 'stress-low'}`}>Stress {e.stress_score}</span>
+                      {e.deadline && <span style={{ fontSize: 10, color: 'var(--red)' }}>Due {e.deadline?.slice(0,10)}</span>}
+                      {e.is_replied && <span style={{ fontSize: 10, color: 'var(--green)' }}>Replied</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+      </div>
+      <div>
+        {selected ? <EmailDetail emailId={selected} onClose={() => setSelected(null)} /> : (
+          <div className="card" style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text3)' }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>Select</div>
+            <div style={{ fontSize: 14 }}>Select an email to view AI analysis</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CommitmentsPage({ addToast }) {
+  const [commitments, setCommitments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
+
+  const load = () => {
+    setLoading(true);
+    api('/commitments').then(setCommitments).finally(() => setLoading(false));
+  };
+  useEffect(load, []);
+
+  const updateStatus = async (id, status) => {
+    try {
+      await api(`/commitments/${id}/status?status=${status}`, { method: 'PUT' });
+      addToast('success', `Commitment marked as ${status}`);
+      load();
+    } catch(e) { addToast('error', e.message); }
+  };
+
+  const filtered = filter === 'all' ? commitments : commitments.filter(c => c.status === filter);
+
+  return (
+    <div>
+      <div className="tab-bar">
+        {['all', 'pending', 'completed', 'missed'].map(t => (
+          <div key={t} className={`tab ${filter === t ? 'active' : ''}`} onClick={() => setFilter(t)}>
+            {t.charAt(0).toUpperCase() + t.slice(1)}
+          </div>
+        ))}
+      </div>
+      {loading ? <div className="loading-overlay"><div className="loading-spinner" /></div>
+        : filtered.length === 0 ? (
+          <div className="empty-state"><div className="empty-icon">🤝</div><h3>No commitments</h3><p>Commitments extracted from emails will appear here.</p></div>
+        ) : (
+          <div>
+            {filtered.map(c => (
+              <div key={c.id} className="commit-item">
+                <div className="commit-dot-col">
+                  <div className="commit-dot" style={{ background: c.status === 'completed' ? 'var(--green)' : c.status === 'missed' ? 'var(--red)' : 'var(--yellow)' }} />
+                </div>
+                <div className="commit-content">
+                  <div className="commit-text">"{c.commitment_text}"</div>
+                  <div className="commit-from">From: {c.sender} · {c.email_subject}</div>
+                  {c.deadline && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 4 }}>⏰ Due: {c.deadline?.slice(0, 10)}</div>}
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
+                    <span className={`badge badge-${c.status}`}>{c.status}</span>
+                    {c.status !== 'completed' && (
+                      <button className="btn btn-success" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => updateStatus(c.id, 'completed')}>✓ Done</button>
+                    )}
+                    {c.status === 'pending' && (
+                      <button className="btn btn-danger" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => updateStatus(c.id, 'missed')}>✗ Miss</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+    </div>
+  );
+}
+
+function TasksPage({ addToast }) {
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
+
+  const load = () => {
+    setLoading(true);
+    api('/tasks').then(setTasks).finally(() => setLoading(false));
+  };
+  useEffect(load, []);
+
+  const updateStatus = async (id, status) => {
+    try {
+      await api(`/tasks/${id}/status?status=${status}`, { method: 'PUT' });
+      addToast('success', `Task marked as ${status}`);
+      load();
+    } catch(e) { addToast('error', e.message); }
+  };
+
+  const filtered = filter === 'all' ? tasks : tasks.filter(t => t.status === filter);
+
+  const priorityColor = { critical: 'var(--red)', high: 'var(--yellow)', medium: 'var(--cyan)', low: 'var(--text3)' };
+
+  return (
+    <div>
+      <div className="tab-bar">
+        {['all', 'pending', 'in_progress', 'completed', 'missed'].map(t => (
+          <div key={t} className={`tab ${filter === t ? 'active' : ''}`} onClick={() => setFilter(t)}>
+            {t.replace('_', ' ').charAt(0).toUpperCase() + t.replace('_', ' ').slice(1)}
+          </div>
+        ))}
+      </div>
+      {loading ? <div className="loading-overlay"><div className="loading-spinner" /></div>
+        : filtered.length === 0 ? (
+          <div className="empty-state"><div className="empty-icon">📋</div><h3>No tasks</h3><p>Tasks created from emails will appear here.</p></div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {filtered.map(t => (
+              <div key={t.id} className="card" style={{ padding: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <div style={{ width: 3, height: 40, borderRadius: 2, background: priorityColor[t.priority] || 'var(--text3)', flexShrink: 0 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontSize: 14, fontWeight: 600 }}>{t.title}</span>
+                      <span className={`badge badge-${t.status}`}>{t.status}</span>
+                      <span style={{ fontSize: 10, color: priorityColor[t.priority], textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600 }}>{t.priority}</span>
+                    </div>
+                    {t.description && <div style={{ fontSize: 12, color: 'var(--text2)' }}>{t.description}</div>}
+                    {t.deadline && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 4 }}>⏰ {t.deadline?.slice(0, 10)}</div>}
+                    <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                      {t.status === 'pending' && <button className="btn btn-success" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => updateStatus(t.id, 'in_progress')}>▶ Start</button>}
+                      {t.status === 'in_progress' && <button className="btn btn-success" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => updateStatus(t.id, 'completed')}>✓ Complete</button>}
+                      {t.status !== 'completed' && t.status !== 'missed' && <button className="btn btn-danger" style={{ fontSize: 10, padding: '3px 8px' }} onClick={() => updateStatus(t.id, 'missed')}>✗ Miss</button>}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 20, fontFamily: 'JetBrains Mono', color: priorityColor[t.priority], fontWeight: 700 }}>P{t.priority_score}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+    </div>
+  );
+}
+
+function DecisionLogsPage() {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api('/decision-logs?limit=100').then(setLogs).finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div>
+      <div style={{ marginBottom: 16, fontSize: 13, color: 'var(--text2)' }}>
+        Every autonomous decision made by the AI is logged here for full explainability.
+      </div>
+      {loading ? <div className="loading-overlay"><div className="loading-spinner" /></div>
+        : logs.length === 0 ? (
+          <div className="empty-state"><div className="empty-icon">📋</div><h3>No decisions logged yet</h3></div>
+        ) : (
+          logs.map(log => (
+            <div key={log.id} className="log-item">
+              <div className="log-header">
+                <span className={`log-decision ${log.was_suppressed ? 'suppressed' : ''}`}>{log.decision_taken}</span>
+                {log.classification && <span className={`badge badge-${(log.classification || 'informational').toLowerCase()}`}>{log.classification}</span>}
+                {log.was_suppressed && <span style={{ fontSize: 10, color: 'var(--red)', background: 'rgba(239,68,68,0.1)', padding: '2px 6px', borderRadius: 4 }}>🚫 Suppressed</span>}
+                {log.cognitive_load_at_time != null && (
+                  <span style={{ marginLeft: 'auto', fontSize: 10, fontFamily: 'JetBrains Mono', color: 'var(--text3)' }}>Load: {log.cognitive_load_at_time}</span>
+                )}
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 500, marginBottom: 4 }}>{log.email_subject || 'System'}</div>
+              {log.sender && <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 6 }}>From: {log.sender}</div>}
+              <div className="log-reason">{log.reason}</div>
+              {log.suppression_reason && <div className="log-reason" style={{ color: 'var(--red)', marginTop: 4, fontSize: 11 }}>⚠️ {log.suppression_reason}</div>}
+              <div className="log-meta">{new Date(log.timestamp).toLocaleString()}</div>
+            </div>
+          ))
+        )}
+    </div>
+  );
+}
+
+function SenderProfilesPage() {
+  const [profiles, setProfiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api('/sender-profiles').then(setProfiles).finally(() => setLoading(false));
+  }, []);
+
+  const reliabilityColor = r => r > 70 ? 'var(--green)' : r > 40 ? 'var(--yellow)' : 'var(--red)';
+
+  return (
+    <div>
+      <div style={{ marginBottom: 16, fontSize: 13, color: 'var(--text2)' }}>
+        🕵️ AI-built intelligence profiles for every sender — a unique feature you won't find anywhere else.
+      </div>
+      {loading ? <div className="loading-overlay"><div className="loading-spinner" /></div>
+        : profiles.length === 0 ? (
+          <div className="empty-state"><div className="empty-icon">👤</div><h3>No sender profiles</h3><p>Process emails to build sender profiles.</p></div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+            {profiles.map(p => (
+              <div key={p.id} className="card" style={{ padding: 16 }}>
+                <div className="profile-header">
+                  <div className="profile-avatar" style={{ width: 44, height: 44, fontSize: 18 }}>{initials(p.name)}</div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 15 }}>{p.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text3)' }}>{p.email}</div>
+                  </div>
+                  <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+                    <div style={{ fontSize: 11, color: 'var(--text3)' }}>Emails</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'JetBrains Mono', color: 'var(--cyan)' }}>{p.email_count}</div>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+                  <div style={{ background: 'var(--bg3)', borderRadius: 8, padding: 8 }}>
+                    <div style={{ fontSize: 10, color: 'var(--text3)' }}>Style</div>
+                    <div style={{ fontSize: 12, fontWeight: 500, marginTop: 2 }}>{p.communication_style || 'Unknown'}</div>
+                  </div>
+                  <div style={{ background: 'var(--bg3)', borderRadius: 8, padding: 8 }}>
+                    <div style={{ fontSize: 10, color: 'var(--text3)' }}>Urgency</div>
+                    <div style={{ fontSize: 12, fontWeight: 500, marginTop: 2 }}>{p.typical_urgency || 'Unknown'}</div>
+                  </div>
+                  <div style={{ background: 'var(--bg3)', borderRadius: 8, padding: 8 }}>
+                    <div style={{ fontSize: 10, color: 'var(--text3)' }}>Avg Stress</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: stressColor(p.avg_stress_score), fontFamily: 'JetBrains Mono', marginTop: 2 }}>{Math.round(p.avg_stress_score)}/100</div>
+                  </div>
+                  <div style={{ background: 'var(--bg3)', borderRadius: 8, padding: 8 }}>
+                    <div style={{ fontSize: 10, color: 'var(--text3)' }}>Avg Priority</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--cyan)', fontFamily: 'JetBrains Mono', marginTop: 2 }}>{p.avg_priority?.toFixed(1)}/10</div>
+                  </div>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text3)', marginBottom: 4 }}>
+                    <span>Reliability</span>
+                    <span style={{ color: reliabilityColor(p.reliability_score), fontWeight: 700 }}>{Math.round(p.reliability_score)}%</span>
+                  </div>
+                  <div className="reliability-bar">
+                    <div className="reliability-fill" style={{ width: `${p.reliability_score}%`, background: `linear-gradient(90deg, ${reliabilityColor(p.reliability_score)}, var(--cyan))` }} />
+                  </div>
+                </div>
+                {p.common_topics?.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+                    {p.common_topics.slice(0, 4).map((t, i) => (
+                      <span key={i} style={{ fontSize: 10, background: 'rgba(0,212,255,0.07)', color: 'var(--text2)', padding: '2px 6px', borderRadius: 4 }}>{t}</span>
+                    ))}
+                  </div>
+                )}
+                {p.notes && <div style={{ fontSize: 11, color: 'var(--text3)', fontStyle: 'italic' }}>{p.notes}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+    </div>
+  );
+}
+
+// ─── Auth Screen ──────────────────────────────────────────────────────────────
+
+function AuthScreen() {
+  const params = new URLSearchParams(window.location.search);
+  const authError = params.get('auth') === 'error' ? params.get('msg') : null;
+  const authSuccess = params.get('auth') === 'success';
+
+  return (
+    <div className="auth-screen">
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(ellipse at 50% 0%, rgba(0,212,255,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      <div className="auth-card">
+        <div className="auth-logo">🧠</div>
+        <div className="auth-title">Email Intelligence System</div>
+        <div className="auth-sub">AI-powered autonomous email management.<br />Connect your Gmail to get started.</div>
+        {authError && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: 12, fontSize: 12, color: 'var(--red)', marginBottom: 16 }}>⚠️ Auth error: {authError}</div>}
+        {authSuccess && <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 8, padding: 12, fontSize: 12, color: 'var(--green)', marginBottom: 16 }}>✅ Connected! Refreshing...</div>}
+        <div className="feature-list">
+          {[
+            ['⚡', 'AI email classification & priority scoring'],
+            ['🔊', 'Voice email summaries (unique feature)'],
+            ['😤', 'Email pressure/stress detection'],
+            ['🕵️', 'Sender intelligence profiling'],
+            ['🧠', 'Cognitive load protection system'],
+            ['🤝', 'Auto commitment & deadline tracking'],
+            ['📋', 'Explainable AI decision logs'],
+            ['💬', 'Ask your inbox — natural language Q&A'],
+          ].map(([icon, text]) => (
+            <div key={text} className="feature-item"><span className="fi">{icon}</span> {text}</div>
+          ))}
+        </div>
+        <a href="/auth/login" style={{ textDecoration: 'none' }}>
+          <button className="btn btn-primary" style={{ width: '100%', padding: '14px', fontSize: 14, justifyContent: 'center' }}>
+            🔗 Connect Gmail Account
+          </button>
+        </a>
+        <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 16, lineHeight: 1.6 }}>
+          Your data stays 100% local. No data sent to third-party servers except AI classification.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main App ─────────────────────────────────────────────────────────────────
+
+function App() {
+  const [authenticated, setAuthenticated] = useState(null);
+  const [user, setUser] = useState(null);
+  const [page, setPage] = useState('dashboard');
+  const [stats, setStats] = useState(null);
+  const [loadData, setLoadData] = useState(null);
+  const [syncStatus, setSyncStatus] = useState(null);
+  const [toasts, setToasts] = useState([]);
+  const [urgentCount, setUrgentCount] = useState(0);
+
+  const addToast = (type, msg) => {
+    const id = Date.now();
+    setToasts(t => [...t, { id, type, msg }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 4000);
+  };
+
+  useEffect(() => {
+    api('/auth/status').then(data => {
+      setAuthenticated(data.authenticated);
+      setUser(data.user);
+    }).catch(() => setAuthenticated(false));
+  }, []);
+
+  useEffect(() => {
+    let timer = null;
+    const poll = async () => {
+      try {
+        const data = await api('/emails/sync/status');
+        setSyncStatus(data);
+        timer = setTimeout(poll, data?.running ? 1500 : 5000);
+      } catch (_) {
+        timer = setTimeout(poll, 5000);
+      }
+    };
+    poll();
+    return () => { if (timer) clearTimeout(timer); };
+  }, []);
+
+  const loadDashboard = useCallback(() => {
+    if (!authenticated) return;
+    api('/dashboard/stats').then(d => {
+      setStats(d);
+      setUrgentCount(d.emails.urgent);
+    }).catch(() => {});
+    api('/dashboard/cognitive-load').then(setLoadData).catch(() => {});
+  }, [authenticated]);
+
+  useEffect(() => {
+    loadDashboard();
+    const interval = setInterval(loadDashboard, 30000);
+    return () => clearInterval(interval);
+  }, [loadDashboard]);
+
+  const triggerMailboxSync = useCallback(async (maxEmails = 40) => {
+    await api(`/emails/process?max_emails=${maxEmails}`, { method: 'POST' });
+    loadDashboard();
+  }, [loadDashboard]);
+
+  if (authenticated === null) {
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16, color: 'var(--text2)' }}>
+      <div className="loading-spinner" style={{ width: 28, height: 28 }} />
+      <span>Initializing Email Intelligence...</span>
+    </div>;
+  }
+
+  if (!authenticated) return <AuthScreen />;
+
+  const pages = {
+    dashboard: { label: 'Dashboard', icon: '⚡', component: () => <DashboardPage stats={stats} loadData={loadData} syncStatus={syncStatus} onRefresh={loadDashboard} onSync={triggerMailboxSync} /> },
+    emails: { label: 'Emails', icon: '📧', component: () => <EmailsPage addToast={addToast} /> },
+    commitments: { label: 'Commitments', icon: '🤝', component: () => <CommitmentsPage addToast={addToast} /> },
+    tasks: { label: 'Tasks', icon: '📋', component: () => <TasksPage addToast={addToast} /> },
+    'decision-logs': { label: 'Decision Logs', icon: '🧠', component: () => <DecisionLogsPage /> },
+    'sender-profiles': { label: 'Sender Profiles', icon: '🕵️', component: () => <SenderProfilesPage /> },
+  };
+
+  const currentPage = pages[page] || pages.dashboard;
+  const load = loadData;
+  const loadColor = load?.level === 'Low' ? 'var(--green)' : load?.level === 'Moderate' ? 'var(--yellow)' : load?.level === 'High' ? 'var(--orange)' : 'var(--red)';
+  const activeEmail = user?.email || 'No active Gmail account';
+
+  return (
+    <div className="layout">
+      {/* Sidebar */}
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <div className="logo-icon">🧠</div>
+          <div>
+            <div className="logo-text">Email Intel</div>
+            <div className="logo-sub">v1.0 · AI Autonomous</div>
+          </div>
+        </div>
+        <nav className="nav">
+          <div className="nav-section">
+            <div className="nav-label">Core</div>
+            {Object.entries(pages).map(([key, p]) => (
+              <div key={key} className={`nav-item ${page === key ? 'active' : ''}`} onClick={() => setPage(key)}>
+                <span className="icon">{p.icon}</span>
+                <span>{p.label}</span>
+                {key === 'emails' && urgentCount > 0 && <span className="nav-badge">{urgentCount}</span>}
+              </div>
+            ))}
+          </div>
+          <div className="nav-section">
+            <div className="nav-label">Actions</div>
+            <div className="nav-item" onClick={() => { api('/accountability/check', { method: 'POST' }).then(d => addToast('success', `Accountability check: ${d.updated} items updated`)).catch(e => addToast('error', e.message)); }}>
+              <span className="icon">⏰</span>
+              <span>Run Accountability Check</span>
+            </div>
+          </div>
+        </nav>
+        <div className="sidebar-footer">
+          <div className="account-card">
+            <div className="account-label">Active Gmail</div>
+            <div className="account-email">{activeEmail}</div>
+            <div className="account-hint">All emails, tasks, commitments, and analytics on this screen belong to this mailbox only.</div>
+          </div>
+          {load && (
+            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', marginBottom: 8 }}>
+              <div style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 4 }}>Cognitive Load</div>
+              <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden', marginBottom: 4 }}>
+                <div style={{ width: `${load.percentage}%`, height: '100%', background: loadColor, borderRadius: 2, transition: 'width 0.5s' }} />
+              </div>
+              <div style={{ fontSize: 10, color: loadColor, fontWeight: 600 }}>{load.level} ({load.score}pts)</div>
+            </div>
+          )}
+          <div className="auth-status">
+            <div className={`status-dot ${authenticated ? 'connected' : 'disconnected'}`} />
+            <span style={{ fontSize: 11, color: 'var(--text2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{user?.email || 'Connected'}</span>
+            <button className="btn btn-ghost" style={{ fontSize: 10, padding: '2px 4px' }} onClick={() => {
+              api('/auth/logout', { method: 'POST' }).then(() => {
+                setAuthenticated(false);
+                setUser(null);
+                setStats(null);
+                setLoadData(null);
+                setSyncStatus(null);
+                setUrgentCount(0);
+              });
+            }}>⏻</button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main */}
+      <main className="main">
+        <div className="topbar">
+          <div>
+            <div className="topbar-title">{currentPage.icon} {currentPage.label}</div>
+            <div className="topbar-sub">Email Intelligence System · {new Date().toLocaleDateString()}</div>
+          </div>
+          <div className="account-badge" title={activeEmail}>
+            <span>Mailbox</span>
+            <span className="account-badge-text">{activeEmail}</span>
+          </div>
+          <button className="btn btn-secondary" onClick={() => triggerMailboxSync(40).catch(e => addToast('error', e.message))} style={{ marginLeft: 'auto' }}>
+            {syncStatus?.running ? 'Syncing...' : '↺ Sync Mailbox'}
+          </button>
+        </div>
+        <div className="content">
+          {currentPage.component()}
+        </div>
+      </main>
+
+      <Toast toasts={toasts} />
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+window.__EMAIL_INTEL_APP_RENDERED = true;
+</script>
+<script>
+  (function () {
+    const rootEl = document.getElementById('root');
+
+    function showStartupError(reason) {
+      if (!rootEl) return;
+      const depLines = [
+        ['React', !!window.React],
+        ['ReactDOM', !!window.ReactDOM],
+        ['Babel', !!window.Babel]
+      ].map(([name, ok]) => `<li>${name}: ${ok ? 'OK' : 'Missing'}</li>`).join('');
+
+      rootEl.innerHTML = `
+        <div style="max-width:760px;margin:40px auto;padding:20px;background:#0f1928;border:1px solid #1e2d45;border-radius:12px;color:#e2e8f0;font-family:'Space Grotesk',sans-serif;">
+          <h2 style="margin:0 0 10px 0;font-size:18px;">Frontend failed to start</h2>
+          <p style="margin:0 0 12px 0;color:#94a3b8;">${reason}</p>
+          <p style="margin:0 0 8px 0;color:#94a3b8;">Dependency status:</p>
+          <ul style="margin:0 0 14px 18px;color:#94a3b8;">${depLines}</ul>
+          <p style="margin:0;color:#94a3b8;">Open browser DevTools Console to see the exact error stack.</p>
+        </div>
+      `;
+    }
+
+    window.addEventListener('error', function (evt) {
+      showStartupError('JavaScript runtime error: ' + (evt.message || 'Unknown error'));
+    });
+
+    setTimeout(function () {
+      if (!rootEl) return;
+      const hasRenderedApp = !!window.__EMAIL_INTEL_APP_RENDERED;
+      if (!hasRenderedApp) {
+        showStartupError('The app did not mount. This is usually caused by blocked CDN scripts or a JSX compile error.');
+      }
+    }, 2500);
+  })();
+</script>
+</body>
+</html>
+
+
+
+
+
+

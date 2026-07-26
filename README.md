@@ -15,7 +15,7 @@
 | 📋 Task Manager | Auto-creates tasks from action items in emails |
 | 💬 Ask Your Inbox | Natural language Q&A about your emails |
 | 📋 Decision Logs | Full explainability for every AI decision |
-| ⏰ Accountability Check | Flags overdue commitments and missed deadlines |
+| ⏰ Accountability Check | Flags overdue commitments and missed deadlines |    
 
 ## 🚀 Quick Start (VS Code)
 

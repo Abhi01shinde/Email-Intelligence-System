@@ -3,3 +3,13 @@ __pycache__/
 .env
 venv/
 database/*.db
+# OAuth tokens
+data/tokens.json
+data/account_state.json
+data/oauth_state.json
+
+# Database
+data/email_intelligence.db
+
+# Environment variables
+.env
