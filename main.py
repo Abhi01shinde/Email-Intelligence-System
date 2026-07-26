@@ -211,26 +211,43 @@ async def root():
 
 # ─── AUTH ROUTES ───────────────────────────────────────────────────────────────
 
+# ─── AUTH ROUTES ───────────────────────────────────────────────────────────────
+
 @app.get("/auth/login")
 async def auth_login():
     """Redirect user to Google OAuth."""
     try:
         _clear_oauth_state_store()
+
         flow = gmail_service.get_flow()
+
         auth_url, state = flow.authorization_url(
             access_type="offline",
             include_granted_scopes="true",
             prompt="select_account consent"
         )
+
         store = {
             state: {
                 "code_verifier": getattr(flow, "code_verifier", None),
                 "created_at": datetime.utcnow().isoformat()
             }
         }
+
         _save_oauth_state_store(store)
+
+        # ================= DEBUG =================
+        print("\n========== LOGIN ==========")
+        print("Generated State :", state)
+        print("Saved Store     :", store)
+        print("OAuth File      :", OAUTH_STATE_FILE)
+        print("================================\n")
+        # =========================================
+
         return RedirectResponse(url=auth_url)
+
     except Exception as e:
+        print("LOGIN ERROR:", e)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -239,26 +256,66 @@ async def auth_callback(code: str, state: Optional[str] = None):
     """Handle Google OAuth callback."""
     try:
         store = _load_oauth_state_store()
+
+        # ================= DEBUG =================
+        print("\n========== CALLBACK ==========")
+        print("Returned State :", state)
+        print("Loaded Store   :", store)
+        print("OAuth File     :", OAUTH_STATE_FILE)
+        print("=================================\n")
+        # =========================================
+
         if not state or state not in store:
+            print("❌ OAuth State Missing or Expired")
+
             _clear_oauth_state_store()
-            return RedirectResponse(url="/?auth=error&msg=Missing%20or%20expired%20OAuth%20state.%20Please%20try%20again.")
+
+            return RedirectResponse(
+                url="/?auth=error&msg=Missing%20or%20expired%20OAuth%20state.%20Please%20try%20again."
+            )
 
         flow_record = store.pop(state, None)
+
         _save_oauth_state_store(store)
+
         flow = gmail_service.get_flow()
+
         code_verifier = (flow_record or {}).get("code_verifier")
+
         if code_verifier:
             flow.code_verifier = code_verifier
-        flow.fetch_token(code=code)
-        user_info = gmail_service.get_user_profile(credentials=flow.credentials)
-        current_email = (user_info.get("email") or "").strip().lower()
-        gmail_service.save_token(flow.credentials, current_email)
-        if current_email:
-            _save_account_state({"email": current_email})
-        return RedirectResponse(url="/?auth=success")
-    except Exception as e:
-        return RedirectResponse(url=f"/?auth=error&msg={str(e)[:100]}")
 
+        flow.fetch_token(code=code)
+
+        user_info = gmail_service.get_user_profile(
+            credentials=flow.credentials
+        )
+
+        current_email = (
+            user_info.get("email") or ""
+        ).strip().lower()
+
+        gmail_service.save_token(
+            flow.credentials,
+            current_email
+        )
+
+        if current_email:
+            _save_account_state(
+                {"email": current_email}
+            )
+
+        print("✅ OAuth Success")
+        print("Logged in as:", current_email)
+
+        return RedirectResponse(url="/?auth=success")
+
+    except Exception as e:
+        print("❌ CALLBACK ERROR:", str(e))
+
+        return RedirectResponse(
+            url=f"/?auth=error&msg={str(e)[:100]}"
+        )
 
 @app.get("/auth/status")
 async def auth_status():
